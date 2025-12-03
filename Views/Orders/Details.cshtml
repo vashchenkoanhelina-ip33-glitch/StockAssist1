@@ -1,0 +1,187 @@
+﻿@model StockAssist.Web.Models.Order
+
+@{
+    ViewData["Title"] = "Деталі замовлення";
+
+    var isPaid = Model.IsPaid || (Model.Payment?.Status == PaymentStatus.Paid);
+    var monthly = Model.StoragePricePerMonth;
+    var months = Model.StorageMonths;
+    var total = monthly * months;
+
+    DateTime? startDate = Model.StorageFrom;
+    DateTime? endDate = Model.StorageTo;
+
+    if (startDate == null)
+    {
+        startDate = Model.CreatedAt;
+    }
+
+    if (endDate == null)
+    {
+        endDate = startDate.Value.AddMonths(months);
+    }
+
+    string statusText;
+    string statusClass;
+
+    switch (Model.Status)
+    {
+        case OrderStatus.Awaiting:
+            statusText = "Очікує обробки";
+            statusClass = "status-pill status-pill-warning";
+            break;
+        case OrderStatus.InProgress:
+            statusText = "В обробці";
+            statusClass = "status-pill status-pill-info";
+            break;
+        case OrderStatus.Completed:
+            statusText = "Завершено (на складі)";
+            statusClass = "status-pill status-pill-success";
+            break;
+        case OrderStatus.Done:
+            statusText = "Завершено";
+            statusClass = "status-pill status-pill-success";
+            break;
+        case OrderStatus.Canceled:
+            statusText = "Скасовано";
+            statusClass = "status-pill status-pill-danger";
+            break;
+        default:
+            statusText = Model.Status.ToString();
+            statusClass = "status-pill status-pill-neutral";
+            break;
+    }
+
+    var paymentText = isPaid ? "Оплачено" : "Не оплачено";
+    var paymentClass = isPaid
+        ? "status-pill status-pill-success"
+        : "status-pill status-pill-warning";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-3">Замовлення №@Model.Id</h2>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card-glass p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="small text-muted">Сервіс</div>
+                        <h5 class="mb-1">@Model.ServiceType</h5>
+                        <div class="order-card-header-sub">
+                            Створено: @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                        </div>
+                    </div>
+
+                    <span class="@statusClass">
+                        <span class="status-pill-dot"></span>
+                        @statusText
+                    </span>
+                </div>
+
+                <div class="row g-3 small">
+                    <div class="col-md-6">
+                        <p><strong>Склад:</strong> @(Model.Warehouse?.Name ?? "—")</p>
+                        <p><strong>Кількість:</strong> @Model.Quantity</p>
+                        <p><strong>Вага:</strong> @Model.WeightKg кг</p>
+                        <p><strong>Обʼєм:</strong> @Model.VolumeM3 м³</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <p>
+                            <strong>Період зберігання:</strong>
+                            @startDate?.ToLocalTime().ToString("dd.MM.yyyy")
+                            –
+                            @endDate?.ToLocalTime().ToString("dd.MM.yyyy")
+                        </p>
+                        <p><strong>Місячна вартість:</strong> @monthly.ToString("N0") грн</p>
+                        <p><strong>Тривалість:</strong> @months міс.</p>
+                        <p><strong>Підсумок:</strong> @total.ToString("N0") грн</p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                {
+                    <div class="mt-3 small">
+                        <div class="text-muted mb-1">Коментар:</div>
+                        <div>@Model.Notes</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card-glass p-4 h-100 d-flex flex-column">
+                <h5 class="mb-3">Оплата</h5>
+
+                <div class="mb-3">
+                    <span class="text-muted">Статус оплати:</span>
+                    <span class="@paymentClass ms-2">
+                        <span class="status-pill-dot"></span>
+                        @paymentText
+                    </span>
+                </div>
+
+                @if (Model.Payment != null)
+                {
+                    <div class="small mb-3">
+                        <div>Номер платежу: @Model.Payment.Id</div>
+                        <div>Сума: @Model.Payment.Amount.ToString("N0") грн</div>
+                    </div>
+                }
+
+                @if (isPaid)
+                {
+                    <div class="alert alert-success small mb-3">
+                        Оплату за це замовлення вже проведено.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning small mb-3">
+                        Замовлення ще не оплачено. Ви можете оплатити його зараз або пізніше зі списку замовлень.
+                    </div>
+                }
+
+                @if (!isPaid)
+                {
+                    <div class="mb-3">
+                        <form asp-action="Extend" method="post" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <label class="small mb-0">Продовжити зберігання</label>
+                            <select name="months" class="form-select form-select-sm" style="width: 120px;">
+                                <option value="1">+1 місяць</option>
+                                <option value="3">+3 місяці</option>
+                                <option value="6">+6 місяців</option>
+                            </select>
+                            <button type="submit" class="btn btn-outline-primary btn-sm">
+                                Продовжити
+                            </button>
+                        </form>
+
+                        <div class="small text-muted mt-1">
+                            Після вибору періоду вас перенаправить на сторінку оплати продовження.
+                        </div>
+                    </div>
+                }
+
+                <div class="mt-auto d-flex flex-column gap-2">
+                    <a asp-action="Index"
+                       class="btn btn-ghost">
+                        Назад до замовлень
+                    </a>
+
+                    @if (!isPaid)
+                    {
+                        <a asp-controller="Payment"
+                           asp-action="Pay"
+                           asp-route-id="@Model.Id"
+                           class="btn btn-gradient w-100">
+                            Оплатити зараз
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

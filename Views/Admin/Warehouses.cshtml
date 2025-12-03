@@ -1,0 +1,78 @@
+﻿@model IEnumerable<StockAssist.Web.Models.Warehouse>
+
+@{
+    ViewData["Title"] = "Склади";
+}
+
+<h2 class="fw-bold mb-3">Склади</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+else if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Message"]
+    </div>
+}
+
+<div class="mb-3">
+    <a asp-action="EditWarehouse" class="btn btn-gradient">Додати склад</a>
+    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Назад в адмін-панель</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Складів поки немає. Додайте перший склад.
+    </div>
+}
+else
+{
+    <div class="card-glass p-3">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+            <tr>
+                <th>Назва</th>
+                <th class="text-end">Ширина</th>
+                <th class="text-end">Глибина</th>
+                <th class="text-end">Висота</th>
+                <th class="text-end"></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var w in Model)
+            {
+                <tr>
+                    <td>@w.Name</td>
+                    <td class="text-end">@w.Width</td>
+                    <td class="text-end">@w.Depth</td>
+                    <td class="text-end">@w.Height</td>
+                    <td class="text-end">
+                        <a asp-action="EditWarehouse"
+                           asp-route-id="@w.Id"
+                           class="btn btn-sm btn-outline-primary">
+                            Редагувати
+                        </a>
+
+                        <form asp-action="DeleteWarehouse"
+                              asp-route-id="@w.Id"
+                              method="post"
+                              class="d-inline"
+                              onsubmit="return confirm('Видалити склад @w.Name?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-sm btn-outline-danger">
+                                Видалити
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

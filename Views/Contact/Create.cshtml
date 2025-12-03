@@ -1,0 +1,29 @@
+
+@{ ViewData["Title"] = "Контакти"; }
+<h2 class="fw-bold mb-3">Contacts</h2>
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="card-glass p-3">
+      <h5>Support contacts</h5>
+      <div class="d-flex flex-column gap-2 mt-2">
+        <span class="pill"><b>Hotline:</b>&nbsp;0968123456</span>
+        <span class="pill"><b>Email:</b>&nbsp;support@example.com</span>
+        <span class="pill"><b>Working hours:</b>&nbsp;9:00–18:00</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="card-glass p-3">
+      <h5>Feedback form</h5>
+      <form method="post" asp-action="Create">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Name</label><input class="form-control" name="name" required/></div>
+          <div class="col-md-6"><label class="form-label">Email</label><input class="form-control" name="email" type="email" required/></div>
+          <div class="col-12"><label class="form-label">Message text</label><textarea class="form-control" name="body" rows="4" required></textarea></div>
+          <div class="col-12"><label class="form-label">Message subject</label><input class="form-control" name="subject" required/></div>
+        </div>
+        <div class="mt-3"><button class="btn btn-gradient">Send request</button></div>
+      </form>
+    </div>
+  </div>
+</div>

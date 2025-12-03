@@ -1,0 +1,100 @@
+@model IEnumerable<StockAssist.Web.Models.Order>
+@using StockAssist.Web.Models
+
+@{
+    ViewData["Title"] = "Історія замовлень";
+
+    var warehouses = ViewBag.Warehouses as List<Warehouse>;
+    int? selectedWarehouseId = null;
+    if (ViewBag.SelectedWarehouseId != null)
+    {
+        selectedWarehouseId = (int?)ViewBag.SelectedWarehouseId;
+    }
+}
+
+<h2 class="fw-bold mb-3">Історія замовлень</h2>
+
+@if (TempData["ErrorMessage"] is string err)
+{
+    <div class="alert alert-danger">@err</div>
+}
+<form asp-action="History" method="get" class="row g-2 mb-4">
+    <div class="col-md-4">
+        <label class="form-label">Склад</label>
+        <select name="warehouseId" class="form-select">
+            <option value="">Усі склади</option>
+        
+            @if (warehouses != null)
+            {
+                foreach (var wh in warehouses)
+                {
+                    var isSelected = selectedWarehouseId == wh.Id;
+        
+                    <option value="@wh.Id" selected="@(isSelected ? "selected" : null)">
+                        @wh.Name
+                    </option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-gradient w-100">
+            Фільтрувати
+        </button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Історичних замовлень поки немає.
+    </div>
+}
+else
+{
+    <div class="card-glass p-3">
+        <table class="table table-sm align-middle mb-0">
+            <thead>
+            <tr>
+                <th>№</th>
+                <th>Створено</th>
+                <th>Склад</th>
+                <th>Сервіс</th>
+                <th>Місяців</th>
+                <th>Сума</th>
+                <th>Статус</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var o in Model)
+            {
+                var monthly = o.StoragePricePerMonth;
+                var months = o.StorageMonths;
+                var total = monthly * months;
+
+                var isPaid = o.IsPaid || (o.Payment?.Status == PaymentStatus.Paid);
+                var paymentText = isPaid ? "Оплачено" : "Не оплачено";
+
+                <tr>
+                    <td>@o.Id</td>
+                    <td>@o.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@(o.Warehouse?.Name ?? "—")</td>
+                    <td>@o.ServiceType</td>
+                    <td>@months</td>
+                    <td>@total.ToString("N0") грн</td>
+                    <td>@paymentText</td>
+                    <td class="text-end">
+                        <a asp-action="Details"
+                           asp-route-id="@o.Id"
+                           class="btn btn-sm btn-outline-secondary">
+                            Деталі
+                        </a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

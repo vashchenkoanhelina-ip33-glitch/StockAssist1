@@ -1,0 +1,66 @@
+﻿@model StockAssist.Web.Models.Admin.WarehouseEditVm
+
+@{
+    ViewData["Title"] = "Редагування складу";
+}
+
+<h2 class="fw-bold mb-3">Редагування складу</h2>
+
+<div class="card-glass p-3">
+    <form asp-action="EditWarehouse" method="post">
+        @Html.AntiForgeryToken()
+        @if (Model.Id.HasValue)
+        {
+            <input type="hidden" asp-for="Id" />
+        }
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Width" class="form-label"></label>
+                <input asp-for="Width" class="form-control" />
+                <span asp-validation-for="Width" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Depth" class="form-label"></label>
+                <input asp-for="Depth" class="form-control" />
+                <span asp-validation-for="Depth" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <label asp-for="Height" class="form-label"></label>
+                <input asp-for="Height" class="form-control" />
+                <span asp-validation-for="Height" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 mt-3">
+                <label class="form-label">Дозволені товари</label>
+                <div class="form-check">
+                    @for (int i = 0; i < Model.AllProducts.Count; i++)
+                    {
+                        var item = Model.AllProducts[i];
+                        <div class="form-check">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   name="SelectedProductIds"
+                                   value="@item.Value"
+                                   @(item.Selected ? "checked" : "") />
+                            <label class="form-check-label">@item.Text</label>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-gradient">Зберегти</button>
+            <a asp-action="Warehouses" class="btn btn-outline-secondary ms-2">Назад</a>
+        </div>
+    </form>
+</div>

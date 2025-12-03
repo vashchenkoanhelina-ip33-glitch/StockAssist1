@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Адмін-панель";
+}
+
+<h2 class="fw-bold mb-3">Адмін-панель</h2>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card-glass p-3 h-100">
+            <h5>Склади</h5>
+            <p class="text-muted mb-3">
+                Параметри складів, розміри та доступність.
+            </p>
+
+            <a asp-action="Warehouses" class="btn btn-gradient btn-sm">
+                Керувати складами
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card-glass p-3 h-100">
+            <h5>Огляд складів</h5>
+            <p class="text-muted mb-3">
+                Завантаженість складів, оплати та статистика по користувачах.
+            </p>
+
+            <a asp-action="WarehouseOverview" class="btn btn-gradient btn-sm">
+                Перейти до огляду
+            </a>
+        </div>
+    </div>
+</div>

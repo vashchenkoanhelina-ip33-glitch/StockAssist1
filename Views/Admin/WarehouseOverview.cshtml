@@ -1,0 +1,174 @@
+﻿@model StockAssist.Web.Models.Admin.WarehouseOverviewVm
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Огляд замовлень по складах";
+
+    var userLabelsJson = JsonSerializer.Serialize(Model.UserStats.Select(x => x.UserLabel));
+    var userValuesJson = JsonSerializer.Serialize(Model.UserStats.Select(x => x.TotalItems));
+}
+
+<h2 class="fw-bold mb-3">Огляд замовлень по складах</h2>
+
+<div class="card-glass p-3 mb-3">
+    <form method="get" asp-action="WarehouseOverview" asp-controller="Admin" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Обрати склад</label>
+            <select name="warehouseId" class="form-select">
+                <option value="">— Оберіть склад —</option>
+                @foreach (var w in Model.Warehouses)
+                {
+                    <option value="@w.Value" selected="@(w.Selected ? "selected" : null)">
+                        @w.Text
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-gradient w-100">
+                Показати
+            </button>
+        </div>
+        <div class="col-md-3">
+            <a asp-action="Index" asp-controller="Admin" class="btn btn-ghost w-100">
+                Повернутися назад
+            </a>
+        </div>
+    </form>
+</div>
+
+@if (!Model.SelectedWarehouseId.HasValue)
+{
+    <div class="card-glass p-4">
+        <p class="mb-0 text-muted">
+            Оберіть склад, щоб побачити завантаженість, оплати та статистику по користувачах.
+        </p>
+    </div>
+}
+else
+{
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-glass p-3 h-100">
+                <h6 class="mb-2">Завантаженість складу</h6>
+                <p class="mb-1">
+                    Клітинок зайнято:
+                    <strong>@Model.OccupiedCells / @Model.TotalCells</strong>
+                </p>
+                <p class="mb-0 text-muted">
+                    Приблизно @Model.OccupancyPercent.ToString("F1")%
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-glass p-3 h-100">
+                <h6 class="mb-2">Замовлення</h6>
+                <p class="mb-1">
+                    Всього замовлень: <strong>@Model.Orders.Count</strong>
+                </p>
+                <p class="mb-0 text-muted">
+                    Оплачені: @Model.PaidOrders · Неоплачені: @Model.UnpaidOrders
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-glass p-3 h-100">
+                <h6 class="mb-2">Сума оплат</h6>
+                <p class="mb-1">
+                    Оплачено: <strong>@Model.PaidAmount.ToString("N0") грн</strong>
+                </p>
+                <p class="mb-0 text-muted">
+                    Очікує оплати: @Model.UnpaidAmount.ToString("N0") грн
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card-glass p-3 h-100">
+                <h6 class="mb-3">Оплати (оплачено / не оплачено)</h6>
+                <canvas id="paymentsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card-glass p-3 h-100">
+                <h6 class="mb-3">Товари по користувачах</h6>
+                @if (!Model.UserStats.Any())
+                {
+                    <p class="text-muted mb-0">
+                        Немає замовлень на цьому складі.
+                    </p>
+                }
+                else
+                {
+                    <canvas id="usersChart" class="mb-3"></canvas>
+
+                    <ul class="small mb-0">
+                        @foreach (var u in Model.UserStats)
+                        {
+                            <li>
+                                <strong>@u.UserLabel</strong> — @u.TotalItems товарів, @u.OrdersCount замовлень
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @if (Model.SelectedWarehouseId.HasValue)
+    {
+        <script>
+            const paymentsCtx = document.getElementById('paymentsChart').getContext('2d');
+            const paymentsChart = new Chart(paymentsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Оплачені', 'Неоплачені'],
+                    datasets: [{
+                        data: [@Model.PaidOrders, @Model.UnpaidOrders]
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            const usersLabels = @Html.Raw(userLabelsJson);
+            const usersValues = @Html.Raw(userValuesJson);
+
+            if (usersLabels.length > 0) {
+                const usersCtx = document.getElementById('usersChart').getContext('2d');
+                const usersChart = new Chart(usersCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: usersLabels,
+                        datasets: [{
+                            label: 'Кількість товарів',
+                            data: usersValues
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: { ticks: { autoSkip: false } },
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        </script>
+    }
+}

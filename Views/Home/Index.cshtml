@@ -1,0 +1,62 @@
+@{
+    ViewData["Title"] = "Головна";
+}
+
+<section class="hero-shell">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="eyebrow mb-2">
+                ЗБЕРІГАННЯ БЕЗ ХАОСУ
+            </div>
+
+            <h1 class="display-4 fw-bold mb-3">
+                Зберігання товарів в один дашборд
+            </h1>
+
+            <p class="lead mb-4">
+                Створюй запити, відстежуй статуси та контролюй склад — усе в одному легкому інтерфейсі.
+                Ніяких таблиць і хаотичних чатів.
+            </p>
+
+            <div class="d-flex gap-3 flex-wrap">
+                <a class="btn btn-gradient btn-lg px-4" asp-controller="Orders" asp-action="Create">
+                    Створити запит
+                </a>
+                <a class="btn btn-outline-secondary btn-lg px-4" asp-controller="Orders" asp-action="Index">
+                    Перейти до замовлень
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-5">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card-glass h-100">
+                <h5 class="fw-bold mb-2">Контроль замовлень</h5>
+                <p class="mb-0">
+                    Фільтруй замовлення за статусом, складом та датою.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-glass h-100">
+                <h5 class="fw-bold mb-2">Швидкі запити</h5>
+                <p class="mb-0">
+                    Новий запит зберігання за кілька полів — без зайвої бюрократії.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card-glass h-100">
+                <h5 class="fw-bold mb-2">Пряма комунікація</h5>
+                <p class="mb-0">
+                    Пиши в підтримку по складних кейсах — заявка не губиться.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>

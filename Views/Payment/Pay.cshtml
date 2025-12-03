@@ -1,0 +1,329 @@
+﻿@model StockAssist.Web.Models.PayViewModel
+
+@{
+    ViewData["Title"] = "Оплата замовлення";
+
+    var monthlyPrice = Model.StoragePricePerMonth;        
+    var months = Model.StorageMonths;                 
+    var totalAmount = monthlyPrice * months;          
+}
+
+<h2 class="fw-bold mb-3">Оплата замовлення №@Model.OrderNumber</h2>
+
+<div class="card-glass p-4">
+    <form asp-action="Pay"
+          asp-controller="Payment"
+          class="needs-validation"
+          autocomplete="off"
+          novalidate>
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="OrderId" />
+        <input type="hidden" asp-for="OrderNumber" />
+
+        <input type="text" name="fake-username" autocomplete="username" class="d-none" />
+        <input type="password" name="fake-password" autocomplete="new-password" class="d-none" />
+
+        <div class="validation-summary-card d-none mb-3" data-validation-summary></div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <h5 class="mb-3">Спосіб оплати</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Будь ласка, оберіть спосіб оплати</label>
+                    <select class="form-select"
+                            asp-for="PaymentMethod"
+                            id="paymentMethod"
+                            required
+                            data-display-name="Спосіб оплати">
+                        <option value="">Оберіть спосіб оплати</option>
+                        <option value="Visa">Visa</option>
+                        <option value="MasterCard">MasterCard</option>
+                        <option value="PayLater">Оплатити пізніше</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Оберіть спосіб оплати.
+                    </div>
+                </div>
+
+                <div id="cardFields">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Номер картки</label>
+                            <input type="text"
+                                   class="form-control"
+                                   asp-for="CardNumber"
+                                   inputmode="numeric"
+                                   minlength="16"
+                                   maxlength="19"
+                                   placeholder="0000 0000 0000 0000"
+                                   autocomplete="off"
+                                   required
+                                   data-display-name="Номер картки" />
+                            <div class="invalid-feedback">
+                                Введіть номер картки.
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Закінчення дії</label>
+                            <input type="text"
+                                   class="form-control"
+                                   asp-for="CardExpiry"
+                                   placeholder="MM/YY"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   data-display-name="Термін дії картки" />
+                            <div class="invalid-feedback">
+                                Вкажіть термін дії у форматі MM/YY.
+                            </div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">CVV</label>
+                            <input type="text"
+                                   class="form-control"
+                                   asp-for="CardCvv"
+                                   minlength="3"
+                                   maxlength="4"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   placeholder="***"
+                                   required
+                                   data-display-name="CVV-код" />
+                            <div class="invalid-feedback">
+                                Вкажіть CVV-код (3–4 цифри).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <h5 class="mb-3">Платіжні відомості</h5>
+
+                <div id="billingFields" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ім’я</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="FirstName"
+                               autocomplete="off"
+                               required
+                               data-display-name="Імʼя" />
+                        <div class="invalid-feedback">
+                            Вкажіть ім’я платника.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Прізвище</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="LastName"
+                               autocomplete="off"
+                               required
+                               data-display-name="Прізвище" />
+                        <div class="invalid-feedback">
+                            Вкажіть прізвище платника.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Адреса для рахунків</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="BillingAddress"
+                               autocomplete="off"
+                               required
+                               data-display-name="Адресу для рахунків" />
+                        <div class="invalid-feedback">
+                            Вкажіть адресу для рахунків.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Місто</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="BillingCity"
+                               autocomplete="off"
+                               required
+                               data-display-name="Місто" />
+                        <div class="invalid-feedback">
+                            Вкажіть місто.
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Поштовий індекс</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="BillingZip"
+                               autocomplete="off"
+                               required
+                               data-display-name="Поштовий індекс" />
+                        <div class="invalid-feedback">
+                            Вкажіть поштовий індекс.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Країна</label>
+                        <input type="text"
+                               class="form-control"
+                               asp-for="BillingCountry"
+                               value="Україна"
+                               autocomplete="off"
+                               required
+                               data-display-name="Країна" />
+                        <div class="invalid-feedback">
+                            Вкажіть країну.
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Номер телефону</label>
+                        <input type="tel"
+                               class="form-control"
+                               asp-for="Phone"
+                               autocomplete="off"
+                               required
+                               data-display-name="Номер телефону" />
+                        <div class="invalid-feedback">
+                            Вкажіть номер телефону.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check mt-3">
+                    <input class="form-check-input" asp-for="SaveCard" id="saveCard">
+                    <label class="form-check-label" for="saveCard">
+                        Зберегти платіжні дані для майбутніх покупок
+                    </label>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card-glass h-100 p-4">
+                    <h5 class="mb-3">Підсумок замовлення</h5>
+
+                    <p class="mb-1">
+                        <span class="text-muted">Місячна вартість зберігання:</span><br />
+                        <strong>@monthlyPrice.ToString("N0") грн / місяць</strong>
+                    </p>
+
+                    <p class="mb-1">
+                        <span class="text-muted">Кількість місяців:</span><br />
+                        <strong>@months</strong>
+                    </p>
+
+                    <hr />
+
+                    <p class="mb-1">
+                        <span class="text-muted">Сума до оплати:</span><br />
+                        <strong class="fs-4">@totalAmount.ToString("N0") грн</strong>
+                    </p>
+
+                    <p class="small text-muted mt-2">
+                        Після успішної оплати статус замовлення буде оновлено автоматично.
+                    </p>
+
+                    <button type="submit"
+                            id="payButton"
+                            class="btn btn-gradient w-100 mt-3">
+                        Оплатити
+                    </button>
+
+                    <a asp-controller="Orders"
+                       asp-action="Index"
+                       class="btn btn-outline-secondary w-100 mt-2">
+                        Назад до моїх замовлень
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const form = document.querySelector('.needs-validation');
+            if (!form) return;
+
+            const paymentMethodSelect = document.getElementById('paymentMethod');
+
+            function showSummary(invalid) {
+                const summary = form.querySelector('[data-validation-summary]');
+                if (!summary) return;
+
+                if (!invalid || invalid.length === 0) {
+                    summary.classList.add('d-none');
+                    summary.innerHTML = '';
+                    return;
+                }
+
+                const names = invalid
+                    .map(el => el.getAttribute('data-display-name'))
+                    .filter(Boolean);
+
+                if (names.length > 0) {
+                    summary.classList.remove('d-none');
+                    summary.innerHTML =
+                        '<strong>Будь ласка, заповніть:</strong> ' + names.join(', ');
+                }
+            }
+
+            function confirmPayLater() {
+                return confirm(
+                    "Здійсніть оплату, інакше ваш товар може бути виставлений на аукціон.\n\n" +
+                    "Ви впевнені, що хочете оплатити пізніше?"
+                );
+            }
+
+            if (paymentMethodSelect) {
+                paymentMethodSelect.addEventListener('change', function () {
+                    if (this.value === 'PayLater') {
+                        const ok = confirmPayLater();
+                        if (ok) {
+                            window.location.href = '@Url.Action("Index", "Orders")';
+                        } else {
+                            this.value = ""; 
+                        }
+                    }
+                });
+            }
+
+            form.addEventListener('submit', function (event) {
+                const method = paymentMethodSelect ? paymentMethodSelect.value : '';
+
+                if (method === 'PayLater') {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const ok = confirmPayLater();
+                    if (ok) {
+                        window.location.href = '@Url.Action("Index", "Orders")';
+                    }
+
+                    return;
+                }
+
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const invalid = Array.from(form.querySelectorAll(':invalid'));
+                    form.classList.add('was-validated');
+                    showSummary(invalid);
+
+                    const firstInvalid = invalid[0];
+                    if (firstInvalid) {
+                        firstInvalid.focus();
+                    }
+                } else {
+                    showSummary([]);
+                }
+            });
+        })();
+    </script>
+}

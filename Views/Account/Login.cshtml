@@ -1,0 +1,14 @@
+
+@{ ViewData["Title"] = "Login"; }
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card-glass p-4">
+      <h3 class="mb-3">Login</h3>
+      <form method="post" asp-action="Login">
+        <div class="mb-3"><label class="form-label">Email</label><input class="form-control" name="email" type="email" required /></div>
+        <div class="mb-3"><label class="form-label">Password</label><input class="form-control" name="password" type="password" required /></div>
+        <button class="btn btn-gradient">Sign in</button>
+      </form>
+    </div>
+  </div>
+</div>

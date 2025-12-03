@@ -1,0 +1,185 @@
+@model IEnumerable<StockAssist.Web.Models.Order>
+
+@{
+    ViewData["Title"] = "Мої замовлення";
+}
+
+<div class="container py-4">
+
+    <section class="mb-3">
+        <h1 class="fw-bold mb-2">Мої замовлення</h1>
+        <p class="text-muted mb-4">
+            Тут відображаються всі активні замовлення: статус, склад, період зберігання та оплата.
+        </p>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <div class="card-glass p-4">
+            <h5 class="mb-2">Замовлень ще немає</h5>
+            <p class="mb-3 text-muted">
+                Створи перший запит на зберігання — це займе пару хвилин.
+            </p>
+            <a asp-action="Create" class="btn btn-gradient">
+                Створити запит
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var order in Model)
+            {
+                var isPaid = order.IsPaid || (order.Payment?.Status == PaymentStatus.Paid);
+
+                var months = order.StorageMonths > 0 ? order.StorageMonths : 1;
+                var monthlyPrice = order.StoragePricePerMonth;
+                var totalAmount = monthlyPrice * months;
+
+                DateTime startDate = (order.StorageFrom ?? order.CreatedAt).ToLocalTime().Date;
+                DateTime endDate;
+
+                if (order.StorageTo.HasValue)
+                {
+                    endDate = order.StorageTo.Value.ToLocalTime().Date;
+                }
+                else
+                {
+                    endDate = startDate.AddMonths(months);
+                }
+
+                string statusText;
+                string statusClass;
+
+                switch (order.Status)
+                {
+                    case OrderStatus.Awaiting:
+                        statusText = "Очікує обробки";
+                        statusClass = "status-pill status-pill-awaiting";
+                        break;
+                    case OrderStatus.InProgress:
+                        statusText = "В процесі зберігання";
+                        statusClass = "status-pill status-pill-progress";
+                        break;
+                    case OrderStatus.Completed:
+                        statusText = "Зберігання завершено";
+                        statusClass = "status-pill status-pill-success";
+                        break;
+                    case OrderStatus.Done:
+                        statusText = "Замовлення закрите";
+                        statusClass = "status-pill status-pill-success";
+                        break;
+                    case OrderStatus.Canceled:
+                        statusText = "Скасовано";
+                        statusClass = "status-pill status-pill-danger";
+                        break;
+                    default:
+                        statusText = order.Status.ToString();
+                        statusClass = "status-pill status-pill-neutral";
+                        break;
+                }
+
+                var paymentText = isPaid ? "Оплачено" : "Очікує оплату";
+                var paymentClass = isPaid
+                    ? "status-pill status-pill-success"
+                    : "status-pill status-pill-awaiting";
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="card-glass p-3 h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <div class="small text-muted">Замовлення №@order.Id</div>
+                                <div class="fw-semibold">@order.ServiceType</div>
+                                <div class="small text-muted">
+                                    Створено: @order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+
+                            <span class="@statusClass ms-2">
+                                <span class="status-pill-dot"></span>
+                                @statusText
+                            </span>
+                        </div>
+
+                        <hr class="my-2" />
+
+                        <div class="small mb-2">
+                            <div>
+                                <span class="text-muted">Склад:</span>
+                                <strong>@(order.Warehouse?.Name ?? "—")</strong>
+                            </div>
+
+                            <div>
+                                <span class="text-muted">Період зберігання:</span>
+                                <strong>@startDate.ToString("dd.MM.yyyy") – @endDate.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                        </div>
+
+                        <div class="small mb-2">
+                            <div>
+                                <span class="text-muted">Кількість:</span>
+                                @order.Quantity
+                            </div>
+                            <div>
+                                <span class="text-muted">Вага:</span>
+                                @order.WeightKg кг
+                            </div>
+                            <div>
+                                <span class="text-muted">Обʼєм:</span>
+                                @order.VolumeM3 м³
+                            </div>
+                        </div>
+
+                        <div class="small mb-2">
+                            <div>
+                                <span class="text-muted">Місячна вартість:</span>
+                                @monthlyPrice.ToString("N0") грн
+                            </div>
+                            <div>
+                                <span class="text-muted">Сума за @months міс.:</span>
+                                <strong>@totalAmount.ToString("N0") грн</strong>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(order.Notes))
+                        {
+                            <div class="small text-muted mt-1">
+                                <span class="fw-semibold">Коментар:</span>
+                                <span title="@order.Notes">@order.Notes</span>
+                            </div>
+                        }
+
+                        <div class="mt-auto pt-3 border-top border-opacity-25 border-secondary d-flex align-items-center justify-content-between gap-2">
+                            <div class="small">
+                                <div class="text-muted">Оплата</div>
+                                <span class="@paymentClass mt-1 d-inline-flex">
+                                    <span class="status-pill-dot"></span>
+                                    @paymentText
+                                </span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <a asp-action="Details"
+                                   asp-route-id="@order.Id"
+                                   class="btn btn-ghost btn-sm">
+                                    Деталі
+                                </a>
+
+                                @if (!isPaid && order.Status != OrderStatus.Canceled)
+                                {
+                                    <a asp-controller="Payment"
+                                       asp-action="Pay"
+                                       asp-route-id="@order.Id"
+                                       class="btn btn-gradient btn-sm">
+                                        Оплатити
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
