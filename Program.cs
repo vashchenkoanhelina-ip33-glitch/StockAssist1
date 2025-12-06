@@ -63,7 +63,7 @@ using (var scope = app.Services.CreateScope())
     var adminEmails = new[]
     {
         "stockassist.web@gmail.com",
-        // "navrotskyimaxym@gmail.com"
+    
     };
 
     foreach (var adminEmail in adminEmails)
@@ -136,3 +136,4 @@ app.MapControllerRoute(
 app.MapRazorPages();
 
 app.Run();
+
